@@ -24,8 +24,7 @@ namespace winUItoolkit.Helpers
         /// </summary>
         public static Color ConvertFromString(string hex)
         {
-            if (string.IsNullOrWhiteSpace(hex))
-                return Colors.Black;
+            if (string.IsNullOrWhiteSpace(hex)) return Colors.Black;
 
             hex = hex.Trim().TrimStart('#');
 

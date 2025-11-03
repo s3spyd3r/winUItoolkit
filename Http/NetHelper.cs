@@ -11,8 +11,7 @@ namespace winUItoolkit.Http
         public static bool CheckNetworkConnection()
         {
             // Quick system-level check
-            if (!NetworkInterface.GetIsNetworkAvailable())
-                return false;
+            if (!NetworkInterface.GetIsNetworkAvailable()) return false;
 
             // Retrieve the current connection profile (can be null)
             ConnectionProfile? profile = NetworkInformation.GetInternetConnectionProfile();

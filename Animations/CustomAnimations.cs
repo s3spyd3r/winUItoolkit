@@ -76,6 +76,7 @@ namespace winUItoolkit.Animations
         public static async Task SlideInFromBottomAsync(UIElement element, double durationSeconds = 0.4, double offset = 50)
         {
             if (element is null) return;
+
             try
             {
                 element.RenderTransform = new TranslateTransform { Y = offset };
@@ -105,6 +106,7 @@ namespace winUItoolkit.Animations
         public static async Task ScaleInAsync(UIElement element, double durationSeconds = 0.3, double startScale = 0.8)
         {
             if (element is null) return;
+
             try
             {
                 var scale = new ScaleTransform { ScaleX = startScale, ScaleY = startScale };
@@ -141,6 +143,7 @@ namespace winUItoolkit.Animations
         public static async Task ShakeAsync(UIElement element, double durationSeconds = 0.5, double amplitude = 10)
         {
             if (element is null) return;
+
             try
             {
                 var transform = new TranslateTransform();
@@ -156,6 +159,7 @@ namespace winUItoolkit.Animations
                     double value = (i % 2 == 0) ? amplitude : -amplitude;
                     shake.KeyFrames.Add(new EasingDoubleKeyFrame { Value = value, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(i * keyTimeStep)) });
                 }
+
                 shake.KeyFrames.Add(new EasingDoubleKeyFrame { Value = 0, KeyTime = KeyTime.FromTimeSpan(TimeSpan.FromSeconds(durationSeconds)) });
 
                 Storyboard.SetTarget(shake, element);
@@ -174,6 +178,7 @@ namespace winUItoolkit.Animations
         public static async Task FlipAsync(UIElement element, double durationSeconds = 0.5, bool horizontal = true)
         {
             if (element is null) return;
+
             try
             {
                 var axisTransform = horizontal
@@ -236,6 +241,7 @@ namespace winUItoolkit.Animations
                         To = 0,
                         Duration = new Duration(TimeSpan.FromSeconds(durationSeconds))
                     };
+
                     Storyboard.SetTarget(hide, tagElement);
                     Storyboard.SetTargetProperty(hide, "Opacity");
                     storyboard.Children.Add(hide);
@@ -273,7 +279,7 @@ namespace winUItoolkit.Animations
         {
             var tcs = new TaskCompletionSource<bool>();
 
-            void OnCompleted(object s, object e)
+            void OnCompleted(object? s, object? e)
             {
                 storyboard.Completed -= OnCompleted;
                 tcs.TrySetResult(true);

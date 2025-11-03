@@ -23,9 +23,30 @@ namespace winUItoolkit.IO
         {
             try
             {
-                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uri)).AsTask().ConfigureAwait(false);
-                using var stream = await file.OpenStreamForReadAsync();
-                return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions);
+                try
+                {
+                    StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uri)).AsTask().ConfigureAwait(false);
+                    using var stream = await file.OpenStreamForReadAsync().ConfigureAwait(false);
+                    return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // Fallback for unpackaged desktop scenarios where ms-appx:/// URIs may not be available.
+                    // Try to resolve the path relative to the executable directory.
+                    const string msAppxPrefix = "ms-appx:///";
+                    string relativePath = uri.StartsWith(msAppxPrefix, StringComparison.OrdinalIgnoreCase)
+                        ? uri.Substring(msAppxPrefix.Length)
+                        : uri;
+
+                    string candidate = Path.Combine(AppContext.BaseDirectory, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                    if (File.Exists(candidate))
+                    {
+                        await using var fs = File.OpenRead(candidate);
+                        return await JsonSerializer.DeserializeAsync<T>(fs, JsonOptions).ConfigureAwait(false);
+                    }
+
+                    throw; // rethrow original exception if fallback not applicable
+                }
             }
             catch (Exception ex)
             {

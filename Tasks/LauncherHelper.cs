@@ -3,58 +3,57 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.System;
+using Windows.Storage;
 
-namespace winUItoolkit.PhoneTasks
+namespace winUItoolkit.Tasks
 {
-    /*
-     * await LauncherHelper.LaunchUriAsync("https://www.google.com");
-     * await LauncherHelper.LaunchUriAsync("mailto:test@test.com");
-     * await LauncherHelper.LaunchUriAsync("ms-settings:privacy");
-     * LauncherHelper.LaunchLocalPath("C:\\Users\\Public\\Documents");
-     */
-
     public static class LauncherHelper
     {
-        public static async Task LaunchUriAsync(string uri)
+        public static async Task<bool> LaunchUriAsync(string uri)
         {
-            if (string.IsNullOrWhiteSpace(uri)) return;
+            if (string.IsNullOrWhiteSpace(uri)) return false;
 
             try
             {
-                var targetUri = new Uri(uri, UriKind.Absolute);
-                bool success = await Launcher.LaunchUriAsync(targetUri);
-
-                if (!success)
-                    Debug.WriteLine($"[LauncherHelper] Could not launch URI: {uri}");
+                var success = await Launcher.LaunchUriAsync(new Uri(uri));
+                return success;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[LauncherHelper] Exception launching URI {uri}: {ex}");
+                return false;
             }
         }
 
-        public static void LaunchLocalPath(string path)
+        public static async Task<bool> LaunchLocalPathAsync(string path)
         {
-            if (string.IsNullOrWhiteSpace(path)) return;
+            if (string.IsNullOrWhiteSpace(path)) return false;
 
             try
             {
-                if (File.Exists(path) || Directory.Exists(path))
+                bool success;
+                if (Directory.Exists(path))
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = path,
-                        UseShellExecute = true
-                    });
+                    // Launch folder (requires Windows App SDK 1.2+ for LaunchFolderPathAsync)
+                    success = await Launcher.LaunchFolderPathAsync(path);
+                }
+                else if (File.Exists(path))
+                {
+                    var file = await StorageFile.GetFileFromPathAsync(path);
+                    success = await Launcher.LaunchFileAsync(file);
                 }
                 else
                 {
                     Debug.WriteLine($"[LauncherHelper] Path not found: {path}");
+                    return false;
                 }
+
+                return success;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[LauncherHelper] Exception opening path {path}: {ex}");
+                return false;
             }
         }
     }

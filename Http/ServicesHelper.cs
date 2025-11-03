@@ -12,6 +12,8 @@ namespace winUItoolkit.Http
     public static class ServicesHelper
     {
         private static readonly HttpClient HttpClient = new();
+        private const int MaxRetries = 3;
+        private static readonly TimeSpan RetryBaseDelay = TimeSpan.FromMilliseconds(250);
 
         /// <summary>
         /// The base address for your API, e.g. "https://api.example.com/v1/"
@@ -23,16 +25,12 @@ namespace winUItoolkit.Http
         /// <summary>
         /// Sends an HTTP request and returns raw JSON string.
         /// </summary>
-        public static async Task<string?> HttpRequestAsync(
-            RestRequestTypes requestType,
-            string endpointWithParams,
-            object? postData = null)
+        public static async Task<string?> HttpRequestAsync(RestRequestTypes requestType, string endpointWithParams, object? postData = null)
         {
             try
             {
                 var uri = new Uri($"{ServerAddress}{endpointWithParams}");
-                using var requestMessage = new HttpRequestMessage(
-                    new HttpMethod(requestType.ToString().ToUpperInvariant()), uri);
+                using var requestMessage = new HttpRequestMessage(new HttpMethod(requestType.ToString().ToUpperInvariant()), uri);
 
                 if (postData is not null &&
                     (requestType == RestRequestTypes.Post ||
@@ -43,10 +41,13 @@ namespace winUItoolkit.Http
                     requestMessage.Content = new StringContent(json, Encoding.UTF8, "application/json");
                 }
 
-                using HttpResponseMessage response = await HttpClient.SendAsync(requestMessage);
+                using HttpResponseMessage? response = await SendWithRetriesAsync(requestMessage).ConfigureAwait(false);
+                if (response == null)
+                    return null;
+
                 response.EnsureSuccessStatusCode();
 
-                return await response.Content.ReadAsStringAsync();
+                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -55,18 +56,50 @@ namespace winUItoolkit.Http
             }
         }
 
+        private static async Task<HttpResponseMessage?> SendWithRetriesAsync(HttpRequestMessage request)
+        {
+            for (int attempt = 1; attempt <= MaxRetries; attempt++)
+            {
+                try
+                {
+                    var response = await HttpClient.SendAsync(request).ConfigureAwait(false);
+                    // Retry on server errors (5xx)
+                    if ((int)response.StatusCode >= 500 && attempt < MaxRetries)
+                    {
+                        await Task.Delay(ComputeBackoff(attempt)).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    return response;
+                }
+                catch (HttpRequestException) when (attempt < MaxRetries)
+                {
+                    await Task.Delay(ComputeBackoff(attempt)).ConfigureAwait(false);
+                    continue;
+                }
+                catch (TaskCanceledException) when (attempt < MaxRetries)
+                {
+                    await Task.Delay(ComputeBackoff(attempt)).ConfigureAwait(false);
+                    continue;
+                }
+            }
+
+            return null;
+        }
+
+        private static TimeSpan ComputeBackoff(int attempt)
+        {
+            return TimeSpan.FromMilliseconds(RetryBaseDelay.TotalMilliseconds * Math.Pow(2, attempt - 1));
+        }
+
         /// <summary>
         /// Sends an HTTP request and deserializes JSON into a model.
         /// </summary>
-        public static async Task<T?> HttpRequestAsync<T>(
-            RestRequestTypes requestType,
-            string endpointWithParams,
-            object? postData = null)
+        public static async Task<T?> HttpRequestAsync<T>(RestRequestTypes requestType, string endpointWithParams, object? postData = null)
         {
             string? json = await HttpRequestAsync(requestType, endpointWithParams, postData);
 
-            if (string.IsNullOrWhiteSpace(json))
-                return default;
+            if (string.IsNullOrWhiteSpace(json)) return default;
 
             try
             {
@@ -89,11 +122,7 @@ namespace winUItoolkit.Http
         /// <summary>
         /// Uploads a file to a remote endpoint using multipart/form-data.
         /// </summary>
-        public static async Task<bool> UploadFileAsync(
-            string endpoint,
-            string filePath,
-            string formFieldName = "file",
-            string? contentType = null)
+        public static async Task<bool> UploadFileAsync(string endpoint, string filePath, string formFieldName = "file", string? contentType = null)
         {
             try
             {
