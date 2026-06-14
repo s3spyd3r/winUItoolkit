@@ -84,11 +84,11 @@ namespace winUItoolkit.Animations
 
                 var storyboard = new Storyboard();
 
-                var fade = new DoubleAnimation { From = 0, To = 1, Duration = TimeSpan.FromSeconds(durationSeconds) };
+                var fade = new DoubleAnimation { From = 0, To = 1, Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)) };
                 Storyboard.SetTarget(fade, element);
                 Storyboard.SetTargetProperty(fade, "Opacity");
 
-                var slide = new DoubleAnimation { From = offset, To = 0, Duration = TimeSpan.FromSeconds(durationSeconds), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+                var slide = new DoubleAnimation { From = offset, To = 0, Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)), EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
                 Storyboard.SetTarget(slide, element);
                 Storyboard.SetTargetProperty(slide, "(UIElement.RenderTransform).(TranslateTransform.Y)");
 
@@ -116,9 +116,9 @@ namespace winUItoolkit.Animations
 
                 var storyboard = new Storyboard();
 
-                var scaleX = new DoubleAnimation { To = 1, Duration = TimeSpan.FromSeconds(durationSeconds), EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut } };
-                var scaleY = new DoubleAnimation { To = 1, Duration = TimeSpan.FromSeconds(durationSeconds), EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut } };
-                var fade = new DoubleAnimation { From = 0, To = 1, Duration = TimeSpan.FromSeconds(durationSeconds) };
+                var scaleX = new DoubleAnimation { To = 1, Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)), EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut } };
+                var scaleY = new DoubleAnimation { To = 1, Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)), EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut } };
+                var fade = new DoubleAnimation { From = 0, To = 1, Duration = new Duration(TimeSpan.FromSeconds(durationSeconds)) };
 
                 Storyboard.SetTarget(scaleX, element);
                 Storyboard.SetTarget(scaleY, element);
@@ -154,6 +154,7 @@ namespace winUItoolkit.Animations
                 var shake = new DoubleAnimationUsingKeyFrames();
                 var keyTimeStep = durationSeconds / 6;
 
+                // 6 oscillation frames (alternating amplitude signs) plus a final 0 rest frame
                 for (int i = 0; i < 6; i++)
                 {
                     double value = (i % 2 == 0) ? amplitude : -amplitude;
@@ -193,7 +194,7 @@ namespace winUItoolkit.Animations
                 var flip = new DoubleAnimation
                 {
                     To = 0,
-                    Duration = TimeSpan.FromSeconds(durationSeconds / 2),
+                    Duration = new Duration(TimeSpan.FromSeconds(durationSeconds / 2)),
                     AutoReverse = true,
                     EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut }
                 };
@@ -212,16 +213,15 @@ namespace winUItoolkit.Animations
             }
         }
 
-        public static async Task OnUIElementLoadedAsync(object sender, double durationSeconds = 0.5, bool reverse = false)
+        public static async Task OnUIElementLoadedAsync(FrameworkElement element, double durationSeconds = 0.5, bool reverse = false)
         {
-            if (sender is not FrameworkElement element) return;
+            if (element is null) return;
 
             try
             {
                 double targetOpacity = reverse ? 0 : 1;
                 var storyboard = new Storyboard();
 
-                // Main element fade
                 var fade = new DoubleAnimation
                 {
                     To = targetOpacity,
@@ -232,7 +232,6 @@ namespace winUItoolkit.Animations
                 Storyboard.SetTargetProperty(fade, "Opacity");
                 storyboard.Children.Add(fade);
 
-                // Handle linked element in Tag (optional)
                 if (element.Tag is UIElement tagElement)
                 {
                     var hide = new DoubleAnimation
@@ -273,11 +272,11 @@ namespace winUItoolkit.Animations
         }
 
         /// <summary>
-        /// Helper to await storyboard completion.
+        /// Helper to await storyboard completion. Honors a cancellation token and surfaces Begin() failures.
         /// </summary>
-        private static Task RunStoryboardAsync(Storyboard storyboard)
+        private static Task RunStoryboardAsync(Storyboard storyboard, TimeSpan? timeout = null)
         {
-            var tcs = new TaskCompletionSource<bool>();
+            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             void OnCompleted(object? s, object? e)
             {
@@ -286,7 +285,29 @@ namespace winUItoolkit.Animations
             }
 
             storyboard.Completed += OnCompleted;
-            storyboard.Begin();
+
+            try
+            {
+                storyboard.Begin();
+            }
+            catch (Exception ex)
+            {
+                storyboard.Completed -= OnCompleted;
+                tcs.TrySetException(ex);
+                return tcs.Task;
+            }
+
+            if (timeout is { } t)
+            {
+                return Task.WhenAny(tcs.Task, Task.Delay(t)).Unwrap()
+                    .ContinueWith(_ =>
+                    {
+                        if (!tcs.Task.IsCompleted)
+                            tcs.TrySetException(new TimeoutException("Storyboard did not complete within the allotted time."));
+                        return tcs.Task;
+                    })
+                    .Unwrap();
+            }
 
             return tcs.Task;
         }

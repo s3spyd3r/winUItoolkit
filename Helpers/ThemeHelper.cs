@@ -8,10 +8,13 @@ namespace winUItoolkit.Helpers
     {
         public static void SetApplicationTheme(ElementTheme theme)
         {
-            if (Application.Current is Application app)
+            if (Application.Current is not Application app) return;
+
+            app.RequestedTheme = theme switch
             {
-                app.RequestedTheme = theme == ElementTheme.Default ? ApplicationTheme.Light : (theme == ElementTheme.Dark ? ApplicationTheme.Dark : ApplicationTheme.Light);
-            }
+                ElementTheme.Dark => ApplicationTheme.Dark,
+                _ => ApplicationTheme.Light
+            };
         }
 
         public static void ApplyAccentColor(Color color)

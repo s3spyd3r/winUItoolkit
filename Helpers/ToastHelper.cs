@@ -6,7 +6,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.Threading.Tasks;
 
-namespace Toolkit.Helpers
+namespace winUItoolkit.Helpers
 {
     /// <summary>
     /// Displays a temporary toast-style message in a WinUI 3 app using a provided XamlRoot.
@@ -47,7 +47,6 @@ namespace Toolkit.Helpers
 
             rootGrid.Children.Add(textBlock);
 
-            // Create popup for toast
             var popup = new Popup
             {
                 Child = rootGrid,
@@ -55,7 +54,6 @@ namespace Toolkit.Helpers
                 XamlRoot = xamlRoot
             };
 
-            // Animate fade in + slide up
             var fadeIn = new DoubleAnimation { To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(300)) };
             var slideUp = new DoubleAnimation { To = 0, Duration = new Duration(TimeSpan.FromMilliseconds(300)) };
 
@@ -70,7 +68,6 @@ namespace Toolkit.Helpers
             fadeStoryboard.Children.Add(slideUp);
             fadeStoryboard.Begin();
 
-            // Wait for duration, then fade out
             await Task.Delay(duration);
 
             var fadeOut = new DoubleAnimation { To = 0, Duration = new Duration(TimeSpan.FromMilliseconds(400)) };
@@ -87,7 +84,6 @@ namespace Toolkit.Helpers
             outStoryboard.Children.Add(slideDown);
             outStoryboard.Begin();
 
-            // Give time for fade out, then close popup
             await Task.Delay(500);
             popup.IsOpen = false;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
@@ -101,7 +102,7 @@ namespace winUItoolkit.Helpers
                 var provider = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, transform, ExifOrientationMode.RespectExifOrientation, ColorManagementMode.ColorManageToSRgb);
 
                 var pixels = provider.DetachPixelData();
-                return await ConvertBytesToBitmapAsync(pixels, newWidth, newHeight);
+                return await ConvertBytesToBitmapAsync(pixels, decoder.PixelWidth, decoder.PixelHeight);
             }
             catch (Exception ex)
             {
@@ -127,7 +128,7 @@ namespace winUItoolkit.Helpers
                 var provider = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, transform, ExifOrientationMode.RespectExifOrientation, ColorManagementMode.ColorManageToSRgb);
                 var pixels = provider.DetachPixelData();
 
-                return await ConvertBytesToBitmapAsync(pixels, width, height);
+                return await ConvertBytesToBitmapAsync(pixels, decoder.PixelWidth, decoder.PixelHeight);
             }
             catch (Exception ex)
             {
@@ -172,10 +173,11 @@ namespace winUItoolkit.Helpers
 
         public static async Task<BitmapImage?> AdjustBrightnessAsync(byte[] imageBytes, double factor)
         {
+            double clamped = Math.Clamp(factor, 0, double.MaxValue);
             return await ApplyPixelFilterAsync(imageBytes, (b, g, r, a) =>
             {
                 byte Clamp(double value) => (byte)Math.Min(255, Math.Max(0, value));
-                return (Clamp(r * factor), Clamp(g * factor), Clamp(b * factor), a);
+                return (Clamp(r * clamped), Clamp(g * clamped), Clamp(b * clamped), a);
             });
         }
 

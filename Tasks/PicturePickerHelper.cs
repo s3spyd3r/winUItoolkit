@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
+using winUItoolkit.Helpers;
 
 namespace winUItoolkit.Tasks
 {
@@ -29,7 +31,6 @@ namespace winUItoolkit.Tasks
                 SuggestedStartLocation = PickerLocationId.PicturesLibrary,
                 FileTypeFilter = { ".png", ".jpg", ".jpeg", ".bmp" }
             };
-            // Set owner window if provided
             if (window != null)
                 InitializeWithWindow.Initialize(picker, WindowNative.GetWindowHandle(window));
 
@@ -40,7 +41,7 @@ namespace winUItoolkit.Tasks
             using (var stream = await file.OpenStreamForReadAsync())
             {
                 bytes = new byte[stream.Length];
-                await stream.ReadAsync(bytes, 0, bytes.Length);
+                await stream.ReadExactlyAsync(bytes);
             }
 
             return new PictureData
@@ -54,19 +55,43 @@ namespace winUItoolkit.Tasks
         {
             if (bytes == null || bytes.Length == 0) return null;
 
-            // Use ApplicationData for local storage (more idiomatic than Environment.SpecialFolder)
-            var localFolder = ApplicationData.Current.LocalFolder;
-            var toolkitFolder = await localFolder.CreateFolderAsync("winUItoolkit", CreationCollisionOption.OpenIfExists);
-
             string safeName = string.IsNullOrWhiteSpace(fileName) ? Guid.NewGuid().ToString("N") + ".jpg" : fileName;
-            var file = await toolkitFolder.CreateFileAsync(safeName, CreationCollisionOption.GenerateUniqueName); // Built-in unique naming
 
-            using (var stream = await file.OpenStreamForWriteAsync())
+            if (RuntimeHelper.IsPackaged())
             {
-                await stream.WriteAsync(bytes, 0, bytes.Length);
+                try
+                {
+                    var localFolder = ApplicationData.Current.LocalFolder;
+                    var toolkitFolder = await localFolder.CreateFolderAsync("winUItoolkit", CreationCollisionOption.OpenIfExists);
+                    var file = await toolkitFolder.CreateFileAsync(safeName, CreationCollisionOption.GenerateUniqueName);
+
+                    using (var stream = await file.OpenStreamForWriteAsync())
+                    {
+                        await stream.WriteAsync(bytes, 0, bytes.Length);
+                    }
+
+                    return file.Path;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[PicturePickerHelper] SavePictureAsync packaged error: {ex}");
+                }
             }
 
-            return file.Path;
+            // Unpackaged fallback: LocalApplicationData\winUItoolkit\<safeName>
+            try
+            {
+                var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "winUItoolkit");
+                Directory.CreateDirectory(folder);
+                var unique = Path.Combine(folder, $"{Path.GetFileNameWithoutExtension(safeName)}_{Guid.NewGuid():N}{Path.GetExtension(safeName)}");
+                await File.WriteAllBytesAsync(unique, bytes);
+                return unique;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[PicturePickerHelper] SavePictureAsync unpackaged error: {ex}");
+                return null;
+            }
         }
     }
 }

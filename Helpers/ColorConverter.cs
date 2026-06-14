@@ -28,13 +28,12 @@ namespace winUItoolkit.Helpers
 
             hex = hex.Trim().TrimStart('#');
 
-            // Handle shorthand (#RGB, #ARGB)
+            // Handle shorthand: #RGB → #RRGGBB, #RGBA → #RRGGBBAA
             if (hex.Length == 3)
                 hex = $"{hex[0]}{hex[0]}{hex[1]}{hex[1]}{hex[2]}{hex[2]}";
             else if (hex.Length == 4)
                 hex = $"{hex[0]}{hex[0]}{hex[1]}{hex[1]}{hex[2]}{hex[2]}{hex[3]}{hex[3]}";
 
-            // Add alpha if missing
             if (hex.Length == 6)
                 hex = "FF" + hex;
 
@@ -70,7 +69,7 @@ namespace winUItoolkit.Helpers
 
         /// <summary>
         /// Converts a Color to HSL (hue, saturation, lightness).
-        /// Hue: 0–360°, Saturation/Lightness: 0–1.
+        /// Hue: 0–360°, Saturation/Lightness: 0–1. Alpha is discarded.
         /// </summary>
         public static (double Hue, double Saturation, double Lightness) ToHsl(Color color)
         {
@@ -128,10 +127,8 @@ namespace winUItoolkit.Helpers
             else if (hue < 300) (r, g, b) = (x, 0, c);
             else (r, g, b) = (c, 0, x);
 
-            return Color.FromArgb(alpha,
-                (byte)((r + m) * 255),
-                (byte)((g + m) * 255),
-                (byte)((b + m) * 255));
+            byte Clamp(double value) => (byte)Math.Min(255, Math.Max(0, value));
+            return Color.FromArgb(alpha, Clamp((r + m) * 255), Clamp((g + m) * 255), Clamp((b + m) * 255));
         }
 
         #endregion
@@ -139,7 +136,7 @@ namespace winUItoolkit.Helpers
         #region COLOR ADJUSTMENTS
 
         /// <summary>
-        /// Lightens a color by the given factor (0–1).
+        /// Lightens a color by the given factor (0–1). Clamps at full white.
         /// </summary>
         public static Color Lighten(Color color, double amount)
         {
@@ -149,7 +146,7 @@ namespace winUItoolkit.Helpers
         }
 
         /// <summary>
-        /// Darkens a color by the given factor (0–1).
+        /// Darkens a color by the given factor (0–1). Clamps at full black.
         /// </summary>
         public static Color Darken(Color color, double amount)
         {

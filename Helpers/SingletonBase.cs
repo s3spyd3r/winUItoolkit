@@ -9,7 +9,7 @@ namespace winUItoolkit.Helpers
     /// {
     ///     public async Task LoadAsync() { ... }
     /// }
-    /// 
+    ///
     /// Usage:
     /// await NoticiasProvider.Instance.LoadAsync();
     /// </summary>
@@ -28,8 +28,6 @@ namespace winUItoolkit.Helpers
         /// </summary>
         protected SingletonBase()
         {
-            if (_instance.IsValueCreated)
-                throw new InvalidOperationException($"An instance of {typeof(T).Name} already exists. Use {nameof(Instance)} instead.");
         }
     }
 }

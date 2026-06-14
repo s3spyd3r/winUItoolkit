@@ -6,6 +6,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using winUItoolkit.Helpers;
+using winUItoolkit.IO;
 
 namespace winUItoolkit.Http
 {
@@ -37,7 +39,7 @@ namespace winUItoolkit.Http
                      requestType == RestRequestTypes.Put ||
                      requestType == RestRequestTypes.Patch))
                 {
-                    string json = JsonSerializer.Serialize(postData);
+                    string json = JsonSerializer.Serialize(postData, JsonStorage.Options);
                     requestMessage.Content = new StringContent(json, Encoding.UTF8, "application/json");
                 }
 
@@ -60,13 +62,15 @@ namespace winUItoolkit.Http
         {
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
             {
+                HttpResponseMessage? response = null;
                 try
                 {
-                    var response = await HttpClient.SendAsync(request).ConfigureAwait(false);
-                    // Retry on server errors (5xx)
+                    response = await HttpClient.SendAsync(request).ConfigureAwait(false);
                     if ((int)response.StatusCode >= 500 && attempt < MaxRetries)
                     {
-                        await Task.Delay(ComputeBackoff(attempt)).ConfigureAwait(false);
+                        response.Dispose();
+                        response = null;
+                        await Task.Delay(RetryPolicyHelper.ComputeBackoff(attempt, RetryBaseDelay)).ConfigureAwait(false);
                         continue;
                     }
 
@@ -74,22 +78,22 @@ namespace winUItoolkit.Http
                 }
                 catch (HttpRequestException) when (attempt < MaxRetries)
                 {
-                    await Task.Delay(ComputeBackoff(attempt)).ConfigureAwait(false);
-                    continue;
+                    response?.Dispose();
+                    await Task.Delay(RetryPolicyHelper.ComputeBackoff(attempt, RetryBaseDelay)).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException) when (attempt < MaxRetries)
                 {
-                    await Task.Delay(ComputeBackoff(attempt)).ConfigureAwait(false);
-                    continue;
+                    response?.Dispose();
+                    await Task.Delay(RetryPolicyHelper.ComputeBackoff(attempt, RetryBaseDelay)).ConfigureAwait(false);
+                }
+                catch
+                {
+                    response?.Dispose();
+                    throw;
                 }
             }
 
             return null;
-        }
-
-        private static TimeSpan ComputeBackoff(int attempt)
-        {
-            return TimeSpan.FromMilliseconds(RetryBaseDelay.TotalMilliseconds * Math.Pow(2, attempt - 1));
         }
 
         /// <summary>
@@ -103,10 +107,7 @@ namespace winUItoolkit.Http
 
             try
             {
-                return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                return JsonSerializer.Deserialize<T>(json, JsonStorage.Options);
             }
             catch (Exception ex)
             {

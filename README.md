@@ -6,8 +6,8 @@ This repository targets desktop WinUI 3 apps (Windows App SDK) but includes comp
 
 Contents
 - `Animations/` — custom storyboard-based animations (`CustomAnimations.cs`).
-- `Helpers/` — many small helpers (navigation, theme, logging, async utilities, permissions, accessibility, clipboard, and more).
-- `Http/` — networking helpers, an image cache, and a services wrapper (`ServicesHelper`, `ImageCacheHelper`).
+- `Helpers/` — many small helpers (navigation, theme, logging, async utilities, image manipulation, color conversion, validation, clipboard, UI tree, toast, message dialogs, and more).
+- `Http/` — networking helpers, an image cache, and a services wrapper (`ServicesHelper`, `ImageCacheHelper`, `NetHelper`).
 - `IO/` — JSON serialization and storage helpers (`JsonStorage`, `StorageHelper`).
 - `Tasks/` — platform/task helpers (launcher, location, picture picker, calendar helpers).
 
@@ -26,6 +26,7 @@ using winUItoolkit.Helpers;
 using winUItoolkit.Animations;
 using winUItoolkit.Http;
 using winUItoolkit.IO;
+using winUItoolkit.Tasks;
 ```
 
 3. Call helpers directly from UI code. Examples:
@@ -43,6 +44,7 @@ var obj = await JsonStorage.DeserializeAsync<MyType>(json);
 
 - Simple HTTP request:
 ```csharp
+ServicesHelper.ServerAddress = "https://api.example.com/v1/";
 var result = await ServicesHelper.HttpRequestAsync(RestRequestTypes.Get, "endpoint/items");
 var model = await ServicesHelper.HttpRequestAsync<MyModel>(RestRequestTypes.Get, "endpoint/items/1");
 ```
@@ -53,40 +55,40 @@ Animations
 - `Animations/CustomAnimations.cs`: storyboards and helpers for common UI animations (fade, slide, scale, shake, flip, and a helper to await storyboard completion).
 
 IO and Storage
-- `IO/JsonStorage.cs`: small wrapper around `System.Text.Json` for consistent serializer settings.
-- `IO/StorageHelper.cs`: helpers to read package/asset files and a fallback for unpackaged apps.
+- `IO/JsonStorage.cs`: small wrapper around `System.Text.Json` with shared `Options`/`FileOptions`. Async `Serialize`/`Deserialize` helpers.
+- `IO/StorageHelper.cs`: helpers to read package/asset files (with an unpackaged fallback that resolves the URI relative to the executable), plus `LocalSettings` get/set helpers.
 
 HTTP and Networking
-- `Http/ServicesHelper.cs`: lightweight JSON request/response helpers plus file upload/download and a simple retry/backoff.
-- `Http/ImageCacheHelper.cs`: downloads images, caches them in the app's temporary folder using `StorageFile` APIs and enforces a size-based eviction policy.
+- `Http/ServicesHelper.cs`: JSON request/response helpers, file upload/download, retry/backoff, and typed deserialization.
+- `Http/ImageCacheHelper.cs`: downloads images, caches them in the app's temporary folder using `StorageFile` APIs, and enforces a size-based eviction policy.
 - `Http/NetHelper.cs`: quick connectivity check using `NetworkInformation`.
 
 Helpers (Helpers/)
-The following helper types were added to cover common tasks. Methods are intentionally small and synchronous/async friendly.
+Methods are intentionally small and synchronous/async friendly.
 
-- `NavigationHelper` — Frame navigation helpers and a small `OpenWindow` helper.
-- `ThemeHelper` — Change application theme and apply accent colors at runtime.
-- `PermissionsHelper` — Request location permission (wraps `Geolocator.RequestAccessAsync`) and placeholders for camera/microphone.
-- `LoggingHelper` — Simple logger that writes to `Debug` and optionally to a log file under LocalAppData.
-- `AsyncUtils` — `FireAndForget` and `Debounce` helpers for common async patterns.
-- `StoragePathsHelper` — LocalAppData and temporary folder helpers for desktop scenarios.
-- `ImageMediaHelper` — convenience wrapper around image resize functionality.
-- `UriHelper` — safe HTTP URI validation and query parsing.
-- `Converters` — common XAML converters (BooleanToVisibility, InverseBoolean).
-- `RetryPolicyHelper` — generic retry wrapper to use across network or IO operations.
-- `AccessibilityHelper` — helpers for setting `AutomationProperties` (Name/HelpText).
-- `PerformanceHelper` — simple timing helpers for synchronous and asynchronous code.
-- `TestHelpers` — small helpers to create/delete temporary test files.
+- `AsyncUtils` — `FireAndForget` and `Debounce` helpers.
+- `ClipboardHelper` — text get (async). `SetText` is synchronous because `Clipboard.SetContent` must be called on the UI thread.
+- `ColorConverter` — hex ⇄ Color, HSL ⇄ Color, lighten/darken/adjust saturation.
+- `Converters` — common XAML converters (`BooleanToVisibilityConverter`, `InverseBooleanConverter`).
+- `ImageManipulationHelper` — download bytes, build `BitmapImage`, resize, crop, rotate, brightness, grayscale, invert, color replace.
+- `LoggingHelper` — simple logger that writes to `Debug` and optionally to a log file under LocalAppData.
+- `MessageBoxHelper` — `ContentDialog` wrappers (`ShowAsync` with text/title, multi-button, and `ConfirmAsync`). Serializes concurrent invocations on a single semaphore.
+- `NavigationHelper` — `Frame.Navigate` wrapper and `OpenWindow` helper.
+- `PerformanceHelper` — `Measure`/`MeasureAsync` timing helpers.
+- `RetryPolicyHelper` — generic retry wrapper, plus a public `ComputeBackoff` used by `ServicesHelper`.
 - `RuntimeHelper` — detects if the app is running with a package identity (MSIX).
-- `ClipboardHelper` — wrappers for the system clipboard (text); uses WinRT DataTransfer APIs.
-- `SystemIntegrationHelper` — open system settings pages or URLs using the shell on desktop.
-- `LocalizationHelper` — small wrapper for `ResourceLoader` to load localized strings.
+- `SingletonBase<T>` — generic thread-safe singleton base.
+- `ThemeHelper` — change application theme and apply accent colors at runtime.
+- `ToastHelper` — popup-style transient toast attached to a `XamlRoot`.
+- `UriHelper` — HTTP URI validation and query parsing.
+- `Validators` — common input validators (email, phone, URL, password, numeric, postal, alpha, alphanumeric). `IsValidUrl` delegates to `UriHelper`.
+- `VisualElementsHelper` — visual/logical tree traversal and dump helpers.
 
 Tasks folder (platform helpers)
-- `Tasks/LauncherHelper.cs` — launch URIs and local files (WinRT Launcher in earlier versions; review for packaged/unpackaged behavior).
-- `Tasks/LocationHelper.cs` — geolocation helpers using `Geolocator`.
-- `Tasks/PicturePickerHelper.cs` — file picker & camera capture helpers (WinRT pickers and interop for WinUI 3 desktop ownership).
-- `Tasks/CalendarHelper.cs` — appointment creation helpers (uses WinRT Appointments APIs when available).
+- `Tasks/LauncherHelper.cs` — launch URIs and local files (WinRT Launcher with a `Process.Start` shell fallback for unpackaged scenarios).
+- `Tasks/LocationHelper.cs` — geolocation helpers using `Geolocator`, distance calculations, and unit conversions. `PromptEnableLocationAsync` uses `Launcher.LaunchUriAsync` for `ms-settings:privacy-location`.
+- `Tasks/PicturePickerHelper.cs` — file picker and camera capture helpers (WinRT pickers, interop for WinUI 3 desktop ownership). Save fallback uses `LocalApplicationData` in unpackaged scenarios.
+- `Tasks/CalendarHelper.cs` — appointment creation helpers (uses WinRT `AppointmentManager`).
 
 Design & conventions
 - Nullable reference types are enabled in the project.
@@ -97,7 +99,7 @@ Packaging notes (important)
 - Many helpers call WinRT APIs (pickers, StorageFile, Launcher, Geolocator, AppointmentManager). These are fully supported in packaged (MSIX) apps. In unpackaged desktop scenarios (WinUI 3 without package identity) behavior can differ:
 	- `ms-appx:///` package URIs may not resolve; `StorageHelper` includes a fallback to read assets from the executable output folder.
 	- File pickers require a HWND owner for proper modality in WinUI 3 desktop; `PicturePickerHelper` demonstrates using `WinRT.Interop.WindowNative.GetWindowHandle(window)`.
-	- `Process.Start` with `UseShellExecute = true` is used in some helpers where desktop shell behavior is preferable.
+	- `Process.Start` with `UseShellExecute = true` is used in some helpers where desktop shell behavior is preferable (see `LauncherHelper.LaunchLocalPathAsync`).
 
 Troubleshooting
 - If you hit runtime errors related to package identity or capability access, verify:

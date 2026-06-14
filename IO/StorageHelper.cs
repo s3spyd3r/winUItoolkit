@@ -9,13 +9,6 @@ namespace winUItoolkit.IO
 {
     public static class StorageHelper
     {
-        private static readonly JsonSerializerOptions JsonOptions = new()
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
-        };
-
         /// <summary>
         /// Reads a JSON file from a package URI (e.g. "ms-appx:///Assets/config.json") and deserializes it.
         /// </summary>
@@ -23,34 +16,35 @@ namespace winUItoolkit.IO
         {
             try
             {
-                try
-                {
-                    StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uri)).AsTask().ConfigureAwait(false);
-                    using var stream = await file.OpenStreamForReadAsync().ConfigureAwait(false);
-                    return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions).ConfigureAwait(false);
-                }
-                catch (Exception)
-                {
-                    // Fallback for unpackaged desktop scenarios where ms-appx:/// URIs may not be available.
-                    // Try to resolve the path relative to the executable directory.
-                    const string msAppxPrefix = "ms-appx:///";
-                    string relativePath = uri.StartsWith(msAppxPrefix, StringComparison.OrdinalIgnoreCase)
-                        ? uri.Substring(msAppxPrefix.Length)
-                        : uri;
+                StorageFile file = await StorageFile.GetFileFromApplicationUriAsync(new Uri(uri)).AsTask().ConfigureAwait(false);
+                using var stream = await file.OpenStreamForReadAsync().ConfigureAwait(false);
+                return await JsonSerializer.DeserializeAsync<T>(stream, JsonStorage.FileOptions).ConfigureAwait(false);
+            }
+            catch (Exception primaryEx)
+            {
+                // Fallback for unpackaged desktop scenarios where ms-appx:/// URIs may not be available.
+                // Try to resolve the path relative to the executable directory.
+                const string msAppxPrefix = "ms-appx:///";
+                string relativePath = uri.StartsWith(msAppxPrefix, StringComparison.OrdinalIgnoreCase)
+                    ? uri.Substring(msAppxPrefix.Length)
+                    : uri;
 
-                    string candidate = Path.Combine(AppContext.BaseDirectory, relativePath.Replace('/', Path.DirectorySeparatorChar));
-                    if (File.Exists(candidate))
+                string candidate = Path.Combine(AppContext.BaseDirectory, relativePath.Replace('/', Path.DirectorySeparatorChar));
+                if (File.Exists(candidate))
+                {
+                    try
                     {
                         await using var fs = File.OpenRead(candidate);
-                        return await JsonSerializer.DeserializeAsync<T>(fs, JsonOptions).ConfigureAwait(false);
+                        return await JsonSerializer.DeserializeAsync<T>(fs, JsonStorage.FileOptions).ConfigureAwait(false);
                     }
-
-                    throw; // rethrow original exception if fallback not applicable
+                    catch (Exception fallbackEx)
+                    {
+                        Debug.WriteLine($"[StorageHelper] Fallback read failed for '{uri}': {fallbackEx}");
+                        return default;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[StorageHelper] Error reading file from URI: {ex}");
+
+                Debug.WriteLine($"[StorageHelper] Error reading file from URI '{uri}': {primaryEx}");
                 return default;
             }
         }
@@ -64,7 +58,7 @@ namespace winUItoolkit.IO
             {
                 StorageFile file = await folder.GetFileAsync(fileName);
                 using var stream = await file.OpenStreamForReadAsync();
-                return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions);
+                return await JsonSerializer.DeserializeAsync<T>(stream, JsonStorage.FileOptions);
             }
             catch (Exception ex)
             {
@@ -82,7 +76,7 @@ namespace winUItoolkit.IO
             {
                 StorageFile file = await folder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
                 using var stream = await file.OpenStreamForWriteAsync();
-                await JsonSerializer.SerializeAsync(stream, content, JsonOptions);
+                await JsonSerializer.SerializeAsync(stream, content, JsonStorage.FileOptions);
                 await stream.FlushAsync();
                 return true;
             }

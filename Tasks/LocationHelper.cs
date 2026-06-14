@@ -75,12 +75,9 @@ namespace winUItoolkit.Tasks
         {
             try
             {
-                // Opens the "Privacy -> Location" settings page using shell on desktop
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "ms-settings:privacy-location",
-                    UseShellExecute = true
-                });
+                // ms-settings URIs require the shell in desktop scenarios; Launcher.LaunchUriAsync
+                // resolves them through the same shell on packaged/unpackaged WinUI 3 apps.
+                Windows.System.Launcher.LaunchUriAsync(new Uri("ms-settings:privacy-location")).AsTask().GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {

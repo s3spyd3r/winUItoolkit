@@ -1,39 +1,54 @@
-﻿using System.Text.Json;
+﻿using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace winUItoolkit.IO
 {
     public static class JsonStorage
     {
-        private static readonly JsonSerializerOptions Options = new()
+        /// <summary>
+        /// Default options used for in-memory and transient serialization. Compact, case-insensitive, ignores nulls.
+        /// </summary>
+        public static JsonSerializerOptions Options { get; } = new()
         {
             WriteIndented = false,
             PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
-        public static Task<string> SerializeAsync<T>(T value)
+        /// <summary>
+        /// Options used for file-backed JSON (e.g. user settings on disk). Indented for human inspection.
+        /// </summary>
+        public static JsonSerializerOptions FileOptions { get; } = new()
         {
-            if (value is null)
-                return Task.FromResult(string.Empty);
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
 
-            string json = JsonSerializer.Serialize(value, Options);
-            return Task.FromResult(json);
+        public static async Task<string> SerializeAsync<T>(T value)
+        {
+            if (value is null) return string.Empty;
+            await using var stream = new MemoryStream();
+            await JsonSerializer.SerializeAsync(stream, value, Options).ConfigureAwait(false);
+            stream.Position = 0;
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync().ConfigureAwait(false);
         }
 
-        public static Task<T?> DeserializeAsync<T>(string json)
+        public static async Task<T?> DeserializeAsync<T>(string json)
         {
+            if (string.IsNullOrWhiteSpace(json)) return default;
+
             try
             {
-                if (string.IsNullOrWhiteSpace(json))
-                    return Task.FromResult<T?>(default);
-
-                var result = JsonSerializer.Deserialize<T>(json, Options);
-                return Task.FromResult(result);
+                using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json));
+                return await JsonSerializer.DeserializeAsync<T>(stream, Options).ConfigureAwait(false);
             }
             catch
             {
-                return Task.FromResult<T?>(default);
+                return default;
             }
         }
     }

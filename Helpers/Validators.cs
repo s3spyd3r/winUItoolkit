@@ -33,13 +33,7 @@ namespace winUItoolkit.Helpers
         /// <summary>
         /// Validates a URL (HTTP/HTTPS).
         /// </summary>
-        public static bool IsValidUrl(string? url)
-        {
-            if (string.IsNullOrWhiteSpace(url)) return false;
-
-            return Uri.TryCreate(url, UriKind.Absolute, out var uriResult)
-                && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
-        }
+        public static bool IsValidUrl(string? url) => UriHelper.IsValidHttpUri(url);
 
         /// <summary>
         /// Validates a password based on complexity rules.

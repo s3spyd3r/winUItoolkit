@@ -84,8 +84,13 @@ namespace winUItoolkit.Helpers
         }
 
         /// <summary>
-        /// Finds the first ancestor of a given type in the logical tree (useful for templates or content presenters).
+        /// Finds the first ancestor of a given type by walking up the visual tree.
         /// </summary>
+        /// <remarks>
+        /// WinUI 3 does not expose <c>Microsoft.UI.Xaml.LogicalTreeHelper</c>, so the visual tree is used
+        /// as a fallback. For typical content presenters this is correct; for some templated scenarios
+        /// the visual parent may differ from the logical parent.
+        /// </remarks>
         public static T? GetAncestorOfType<T>(DependencyObject element) where T : DependencyObject
         {
             DependencyObject? parent = element;

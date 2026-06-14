@@ -15,8 +15,7 @@ namespace winUItoolkit.Tasks
 
             try
             {
-                var success = await Launcher.LaunchUriAsync(new Uri(uri));
-                return success;
+                return await Launcher.LaunchUriAsync(new Uri(uri));
             }
             catch (Exception ex)
             {
@@ -31,27 +30,42 @@ namespace winUItoolkit.Tasks
 
             try
             {
-                bool success;
                 if (Directory.Exists(path))
                 {
-                    // Launch folder (requires Windows App SDK 1.2+ for LaunchFolderPathAsync)
-                    success = await Launcher.LaunchFolderPathAsync(path);
-                }
-                else if (File.Exists(path))
-                {
-                    var file = await StorageFile.GetFileFromPathAsync(path);
-                    success = await Launcher.LaunchFileAsync(file);
-                }
-                else
-                {
-                    Debug.WriteLine($"[LauncherHelper] Path not found: {path}");
-                    return false;
+                    return await Launcher.LaunchFolderPathAsync(path);
                 }
 
-                return success;
+                if (File.Exists(path))
+                {
+                    var file = await StorageFile.GetFileFromPathAsync(path);
+                    return await Launcher.LaunchFileAsync(file);
+                }
+
+                Debug.WriteLine($"[LauncherHelper] Path not found: {path}");
+                return false;
             }
             catch (Exception ex)
             {
+                // StorageFile.GetFileFromPathAsync can fail in unpackaged scenarios without broadFileSystemAccess.
+                // Fall back to the shell to at least open the file with its default association.
+                if (File.Exists(path))
+                {
+                    try
+                    {
+                        var psi = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = path,
+                            UseShellExecute = true
+                        };
+                        System.Diagnostics.Process.Start(psi);
+                        return true;
+                    }
+                    catch (Exception fallbackEx)
+                    {
+                        Debug.WriteLine($"[LauncherHelper] Shell fallback failed for {path}: {fallbackEx}");
+                    }
+                }
+
                 Debug.WriteLine($"[LauncherHelper] Exception opening path {path}: {ex}");
                 return false;
             }
