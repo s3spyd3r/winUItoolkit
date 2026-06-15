@@ -40,8 +40,15 @@ namespace winUItoolkit.Tasks
 
                 // Show the add-appointment UI
                 string? appointmentId = await AppointmentManager.ShowAddAppointmentAsync(appointment, selection, Placement.Default);
+                if (!string.IsNullOrEmpty(appointmentId))
+                    return true;
 
-                return !string.IsNullOrEmpty(appointmentId); // True if added successfully
+                // ShowAddAppointmentAsync returns null/empty when no app is registered to handle
+                // the appointment contract (typical for unpackaged WinUI 3 desktop apps without
+                // an MSIX manifest declaring the appointments capability). Fall back to opening
+                // the system calendar app directly.
+                Debug.WriteLine("[CalendarHelper] ShowAddAppointmentAsync returned no id; falling back to system calendar URI.");
+                return await LauncherHelper.LaunchUriAsync("outlookcal:");
             }
             catch (Exception ex)
             {

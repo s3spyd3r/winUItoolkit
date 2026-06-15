@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.LauncherPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="LauncherHelper" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Launch URIs and local paths using the WinRT Launcher (with a shell fallback in unpackaged scenarios)." />
+
+            <TextBox x:Name="UriBox" Header="URI" Text="https://github.com" />
+            <Button Content="Launch URI" Click="Uri_Click" />
+
+            <TextBox x:Name="PathBox" Header="Local path" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Open" Click="Path_Click" />
+                <Button Content="Pick a file" Click="PickFile_Click" />
+                <Button Content="Pick a folder" Click="PickFolder_Click" />
+            </StackPanel>
+
+            <TextBlock x:Name="Status" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

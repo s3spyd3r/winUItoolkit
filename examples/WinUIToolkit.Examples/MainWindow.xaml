@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="WinUIToolkit.Examples.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    Title="winUItoolkit Examples">
+
+    <Grid>
+        <muxc:NavigationView
+            x:Name="NavView"
+            IsBackButtonVisible="Collapsed"
+            IsSettingsVisible="False"
+            IsPaneToggleButtonVisible="False"
+            PaneDisplayMode="Left"
+            OpenPaneLength="240"
+            SelectionChanged="NavView_SelectionChanged">
+            <muxc:NavigationView.MenuItems>
+                <muxc:NavigationViewItem Content="Home" Tag="home" Icon="Home" />
+                <muxc:NavigationViewItemHeader Content="Animations" />
+                <muxc:NavigationViewItem Content="Custom Animations" Tag="WinUIToolkit.Examples.Pages.AnimationsPage" />
+                <muxc:NavigationViewItemHeader Content="Helpers" />
+                <muxc:NavigationViewItem Content="Colors" Tag="WinUIToolkit.Examples.Pages.ColorConverterPage" />
+                <muxc:NavigationViewItem Content="Validators" Tag="WinUIToolkit.Examples.Pages.ValidatorsPage" />
+                <muxc:NavigationViewItem Content="Dialogs &amp; Toast" Tag="WinUIToolkit.Examples.Pages.DialogsPage" />
+                <muxc:NavigationViewItem Content="Clipboard" Tag="WinUIToolkit.Examples.Pages.ClipboardPage" />
+                <muxc:NavigationViewItem Content="Visual Tree" Tag="WinUIToolkit.Examples.Pages.VisualElementsPage" />
+                <muxc:NavigationViewItem Content="Performance / Logging" Tag="WinUIToolkit.Examples.Pages.MiscPage" />
+                <muxc:NavigationViewItemHeader Content="IO" />
+                <muxc:NavigationViewItem Content="JSON Storage" Tag="WinUIToolkit.Examples.Pages.JsonPage" />
+                <muxc:NavigationViewItem Content="Storage &amp; LocalSettings" Tag="WinUIToolkit.Examples.Pages.StoragePage" />
+                <muxc:NavigationViewItemHeader Content="Http" />
+                <muxc:NavigationViewItem Content="Image Manipulation" Tag="WinUIToolkit.Examples.Pages.ImagePage" />
+                <muxc:NavigationViewItem Content="Image Cache" Tag="WinUIToolkit.Examples.Pages.ImageCachePage" />
+                <muxc:NavigationViewItem Content="HTTP Requests" Tag="WinUIToolkit.Examples.Pages.HttpPage" />
+                <muxc:NavigationViewItem Content="Retry Policy" Tag="WinUIToolkit.Examples.Pages.RetryPage" />
+                <muxc:NavigationViewItem Content="Network" Tag="WinUIToolkit.Examples.Pages.NetPage" />
+                <muxc:NavigationViewItemHeader Content="Tasks" />
+                <muxc:NavigationViewItem Content="Launcher" Tag="WinUIToolkit.Examples.Pages.LauncherPage" />
+                <muxc:NavigationViewItem Content="Location" Tag="WinUIToolkit.Examples.Pages.LocationPage" />
+                <muxc:NavigationViewItem Content="Picture Picker" Tag="WinUIToolkit.Examples.Pages.PicturePickerPage" />
+                <muxc:NavigationViewItem Content="Calendar" Tag="WinUIToolkit.Examples.Pages.CalendarPage" />
+                <muxc:NavigationViewItem Content="Singleton" Tag="WinUIToolkit.Examples.Pages.SingletonPage" />
+            </muxc:NavigationView.MenuItems>
+            <Frame x:Name="ContentFrame" />
+        </muxc:NavigationView>
+    </Grid>
+</Window>

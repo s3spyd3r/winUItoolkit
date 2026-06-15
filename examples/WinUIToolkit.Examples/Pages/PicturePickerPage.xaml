@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.PicturePickerPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
+            <TextBlock Text="PicturePickerHelper" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Pick an image, then save the bytes to disk via the same helper." />
+
+            <Button Content="Pick picture" Click="Pick_Click" />
+            <TextBlock x:Name="Info" TextWrapping="Wrap" />
+
+            <TextBox x:Name="FileName" Header="Save as" Text="example.jpg" />
+            <Button Content="Save to app storage" Click="Save_Click" />
+            <TextBlock x:Name="SaveResult" TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

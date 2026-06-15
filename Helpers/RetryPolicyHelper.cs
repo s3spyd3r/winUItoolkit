@@ -13,7 +13,7 @@ namespace winUItoolkit.Helpers
         {
             try
             {
-                return await ExecuteOrThrowAsync(action, maxRetries, baseDelay).ConfigureAwait(false);
+                return await ExecuteOrThrowAsync(action, maxRetries, baseDelay);
             }
             catch
             {
@@ -31,11 +31,11 @@ namespace winUItoolkit.Helpers
             {
                 try
                 {
-                    return await action().ConfigureAwait(false);
+                    return await action();
                 }
                 catch when (attempt < maxRetries)
                 {
-                    await Task.Delay(ComputeBackoff(attempt, delay)).ConfigureAwait(false);
+                    await Task.Delay(ComputeBackoff(attempt, delay));
                 }
             }
         }

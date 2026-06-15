@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="16" MaxWidth="800" HorizontalAlignment="Left">
+            <TextBlock Text="winUItoolkit Examples" FontSize="32" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap"
+                       Text="A runnable showcase of every helper, animation, and feature in the winUItoolkit library. Pick a category on the left to try it out." />
+            <TextBlock Text="Tips" FontSize="20" FontWeight="SemiBold" Margin="0,16,0,0" />
+            <TextBlock TextWrapping="Wrap"
+                       Text="• Network pages (HTTP, Image Cache, Network check) need an active internet connection." />
+            <TextBlock TextWrapping="Wrap"
+                       Text="• Location, Picture Picker, and Calendar will prompt for the appropriate Windows permission on first use." />
+            <TextBlock TextWrapping="Wrap"
+                       Text="• Most helpers support both packaged (MSIX) and unpackaged scenarios; see the README for details." />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

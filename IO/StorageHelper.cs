@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
+using winUItoolkit.Helpers;
 
 namespace winUItoolkit.IO
 {
@@ -88,38 +90,101 @@ namespace winUItoolkit.IO
         }
 
         /// <summary>
-        /// Retrieves a simple value from local settings.
+        /// Retrieves a simple value from local settings. Uses <see cref="ApplicationData.LocalSettings"/>
+        /// in packaged (MSIX) apps and a JSON file under <c>%LocalAppData%\winUItoolkit\settings.json</c>
+        /// in unpackaged scenarios.
         /// </summary>
-        public static Task<T?> GetFromLocalSettingsAsync<T>(string key)
+        public static async Task<T?> GetFromLocalSettingsAsync<T>(string key)
         {
-            try
+            if (RuntimeHelper.IsPackaged())
             {
-                var settings = ApplicationData.Current.LocalSettings;
-                if (settings.Values.TryGetValue(key, out object? value) && value is T typed)
-                    return Task.FromResult<T?>(typed);
+                try
+                {
+                    var settings = ApplicationData.Current.LocalSettings;
+                    if (settings.Values.TryGetValue(key, out object? value) && value is T typed)
+                        return typed;
+                    return default;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[StorageHelper] Error reading LocalSettings key '{key}': {ex}");
+                    return default;
+                }
+            }
 
-                return Task.FromResult<T?>(default);
-            }
-            catch (Exception ex)
+            var map = await ReadUnpackagedSettingsAsync().ConfigureAwait(false);
+            if (map.TryGetValue(key, out var raw))
             {
-                Debug.WriteLine($"[StorageHelper] Error reading LocalSettings key '{key}': {ex}");
-                return Task.FromResult<T?>(default);
+                try
+                {
+                    return JsonSerializer.Deserialize<T>(raw, JsonStorage.FileOptions);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[StorageHelper] Error deserializing unpackaged setting '{key}': {ex}");
+                    return default;
+                }
             }
+            return default;
         }
 
         /// <summary>
-        /// Saves a simple value into local settings.
+        /// Saves a simple value into local settings. Uses <see cref="ApplicationData.LocalSettings"/>
+        /// in packaged (MSIX) apps and a JSON file under <c>%LocalAppData%\winUItoolkit\settings.json</c>
+        /// in unpackaged scenarios.
         /// </summary>
-        public static void SetIntoLocalSettings<T>(string key, T value)
+        public static async Task SetIntoLocalSettingsAsync<T>(string key, T value)
+        {
+            if (RuntimeHelper.IsPackaged())
+            {
+                try
+                {
+                    var settings = ApplicationData.Current.LocalSettings;
+                    settings.Values[key] = value;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[StorageHelper] Error writing LocalSettings key '{key}': {ex}");
+                }
+                return;
+            }
+
+            var map = await ReadUnpackagedSettingsAsync().ConfigureAwait(false);
+            map[key] = JsonSerializer.Serialize(value, JsonStorage.FileOptions);
+            await WriteUnpackagedSettingsAsync(map).ConfigureAwait(false);
+        }
+
+        private static string UnpackagedSettingsPath
+            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "winUItoolkit", "settings.json");
+
+        private static async Task<Dictionary<string, string>> ReadUnpackagedSettingsAsync()
         {
             try
             {
-                var settings = ApplicationData.Current.LocalSettings;
-                settings.Values[key] = value;
+                if (!File.Exists(UnpackagedSettingsPath)) return new();
+                await using var fs = File.OpenRead(UnpackagedSettingsPath);
+                return await JsonSerializer.DeserializeAsync<Dictionary<string, string>>(fs, JsonStorage.FileOptions).ConfigureAwait(false)
+                    ?? new();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[StorageHelper] Error writing LocalSettings key '{key}': {ex}");
+                Debug.WriteLine($"[StorageHelper] Error reading unpackaged settings file: {ex}");
+                return new();
+            }
+        }
+
+        private static async Task WriteUnpackagedSettingsAsync(Dictionary<string, string> map)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(UnpackagedSettingsPath)!);
+                await using var fs = File.Create(UnpackagedSettingsPath);
+                await JsonSerializer.SerializeAsync(fs, map, JsonStorage.FileOptions).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[StorageHelper] Error writing unpackaged settings file: {ex}");
             }
         }
     }

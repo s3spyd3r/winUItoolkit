@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.SingletonPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="SingletonBase&lt;T&gt;" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap"
+                       Text="A thread-safe generic base class. Below, the example app uses AppState : SingletonBase&lt;AppState&gt; to share state across pages." />
+
+            <TextBox x:Name="Input" Header="Message" Text="hello" />
+            <Button Content="Record in singleton" Click="Record_Click" />
+            <TextBlock x:Name="Status" TextWrapping="Wrap" />
+
+            <TextBlock Text="Try it: navigate to another page, then come back. The counter persists because it's a singleton." Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

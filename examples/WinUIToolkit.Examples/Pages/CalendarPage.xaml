@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.CalendarPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="CalendarHelper" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Opens the Windows system 'Add appointment' UI for a given date." />
+
+            <DatePicker x:Name="DatePicker" Header="Date" />
+            <TimePicker x:Name="TimePicker" Header="Time" />
+            <TextBox x:Name="Subject" Header="Subject" Text="winUItoolkit demo" />
+            <TextBox x:Name="Location" Header="Location" Text="Anywhere" />
+
+            <Button Content="Add appointment" Click="Add_Click" />
+            <TextBlock x:Name="Status" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

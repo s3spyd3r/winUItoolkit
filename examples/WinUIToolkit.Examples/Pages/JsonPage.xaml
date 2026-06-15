@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.JsonPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
+            <TextBlock Text="JsonStorage" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Round-trip an object through the shared System.Text.Json options." />
+
+            <TextBox x:Name="NameBox" Header="Name" Text="Ada Lovelace" />
+            <NumberBox x:Name="YearBox" Header="Year" Value="1815" SpinButtonPlacementMode="Inline" />
+            <TextBox x:Name="LanguagesBox" Header="Languages (comma-separated)" Text="English,French,Italian" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Serialize" Click="Serialize_Click" />
+                <Button Content="Deserialize back" Click="Deserialize_Click" />
+            </StackPanel>
+
+            <TextBlock Text="JSON" FontWeight="SemiBold" />
+            <TextBox x:Name="JsonOut" AcceptsReturn="True" TextWrapping="Wrap" Height="120" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -102,7 +102,9 @@ namespace winUItoolkit.Helpers
                 var provider = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, transform, ExifOrientationMode.RespectExifOrientation, ColorManagementMode.ColorManageToSRgb);
 
                 var pixels = provider.DetachPixelData();
-                return await ConvertBytesToBitmapAsync(pixels, decoder.PixelWidth, decoder.PixelHeight);
+                // The pixel buffer is laid out at the scaled size; pass transform dimensions to the encoder
+                // so the pixel-buffer length matches width * height * 4.
+                return await ConvertBytesToBitmapAsync(pixels, transform.ScaledWidth, transform.ScaledHeight);
             }
             catch (Exception ex)
             {
@@ -128,7 +130,8 @@ namespace winUItoolkit.Helpers
                 var provider = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, transform, ExifOrientationMode.RespectExifOrientation, ColorManagementMode.ColorManageToSRgb);
                 var pixels = provider.DetachPixelData();
 
-                return await ConvertBytesToBitmapAsync(pixels, decoder.PixelWidth, decoder.PixelHeight);
+                // Pixel buffer is sized to the crop bounds, not the source dimensions.
+                return await ConvertBytesToBitmapAsync(pixels, transform.Bounds.Width, transform.Bounds.Height);
             }
             catch (Exception ex)
             {
@@ -158,7 +161,17 @@ namespace winUItoolkit.Helpers
                 var provider = await decoder.GetPixelDataAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied, transform, ExifOrientationMode.IgnoreExifOrientation, ColorManagementMode.ColorManageToSRgb);
 
                 var pixels = provider.DetachPixelData();
-                return await ConvertBytesToBitmapAsync(pixels, decoder.PixelWidth, decoder.PixelHeight);
+
+                // 90/270 swaps width and height; pass the rotated dimensions to the encoder
+                // so the pixel buffer is laid out correctly for non-square source images.
+                uint outputWidth = (rotation == BitmapRotation.Clockwise90Degrees || rotation == BitmapRotation.Clockwise270Degrees)
+                    ? decoder.PixelHeight
+                    : decoder.PixelWidth;
+                uint outputHeight = (rotation == BitmapRotation.Clockwise90Degrees || rotation == BitmapRotation.Clockwise270Degrees)
+                    ? decoder.PixelWidth
+                    : decoder.PixelHeight;
+
+                return await ConvertBytesToBitmapAsync(pixels, outputWidth, outputHeight);
             }
             catch (Exception ex)
             {

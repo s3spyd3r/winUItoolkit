@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.VisualElementsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
+            <TextBlock Text="VisualElementsHelper" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Find descendants/ancestors in the visual tree and dump the hierarchy." />
+
+            <Border x:Name="TreeRoot" BorderBrush="{ThemeResource AccentTextFillColorPrimaryBrush}" BorderThickness="1" Padding="12">
+                <StackPanel x:Name="TreeInner" Spacing="4">
+                    <TextBlock Text="Root container" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="Inner 1" />
+                        <Button Content="Inner 2" />
+                    </StackPanel>
+                    <TextBlock Text="Footer" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Find Buttons" Click="Find_Click" />
+                <Button Content="Dump tree" Click="Dump_Click" />
+            </StackPanel>
+
+            <TextBox x:Name="Result" AcceptsReturn="True" TextWrapping="Wrap" Height="200" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

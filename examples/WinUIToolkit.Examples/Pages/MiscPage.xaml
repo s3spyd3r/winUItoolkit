@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.MiscPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="Performance, Logging, AsyncUtils" FontSize="24" FontWeight="SemiBold" />
+
+            <TextBlock Text="PerformanceHelper.Measure" FontWeight="SemiBold" />
+            <Button Content="Measure 5M iterations" Click="Measure_Click" />
+            <TextBlock x:Name="MeasureResult" />
+
+            <TextBlock Text="LoggingHelper" FontWeight="SemiBold" Margin="0,8,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Info" Click="LogInfo_Click" />
+                <Button Content="Warn" Click="LogWarn_Click" />
+                <Button Content="Error" Click="LogError_Click" />
+            </StackPanel>
+            <TextBlock Text="(also written to LocalAppData\winUItoolkit\log.txt)" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+            <TextBlock Text="AsyncUtils.Debounce" FontWeight="SemiBold" Margin="0,8,0,0" />
+            <TextBox x:Name="DebounceInput" PlaceholderText="Type rapidly..." TextChanged="Debounce_TextChanged" />
+            <TextBlock x:Name="DebounceResult" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

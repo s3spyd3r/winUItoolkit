@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.ClipboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="Clipboard" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Read/write text via the WinRT DataTransfer APIs." />
+
+            <TextBox x:Name="SetText" Header="Text to copy" Text="Copied from winUItoolkit Examples" />
+            <Button Content="Copy to clipboard" Click="Set_Click" />
+
+            <Button Content="Read from clipboard" Click="Get_Click" />
+            <TextBlock x:Name="ReadResult" TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

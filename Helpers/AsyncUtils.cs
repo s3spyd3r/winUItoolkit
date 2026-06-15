@@ -23,11 +23,15 @@ namespace winUItoolkit.Helpers
 
         /// <summary>
         /// Returns a debounced action. Successive calls within <paramref name="milliseconds"/> cancel the
-        /// previous pending invocation. The wrapped <paramref name="action"/> runs on a thread-pool thread,
-        /// so it must be safe to invoke off the original context.
+        /// previous pending invocation. The wrapped <paramref name="action"/> runs on the synchronization
+        /// context captured at the call site, so it is safe to touch UI elements from within.
         /// </summary>
         public static Action Debounce(Action action, int milliseconds = 300)
         {
+            var ctx = SynchronizationContext.Current;
+            var scheduler = ctx != null
+                ? TaskScheduler.FromCurrentSynchronizationContext()
+                : TaskScheduler.Default;
             CancellationTokenSource? cts = null;
             return () =>
             {
@@ -36,9 +40,12 @@ namespace winUItoolkit.Helpers
                 var token = cts.Token;
                 _ = Task.Delay(milliseconds, token).ContinueWith(t =>
                 {
-                    if (!t.IsCanceled) action();
-                }, TaskScheduler.Default);
+                    if (t.IsCanceled || t.IsFaulted) return;
+                    if (ctx != null) ctx.Post(_ => action(), null);
+                    else action();
+                }, scheduler);
             };
         }
     }
 }
+

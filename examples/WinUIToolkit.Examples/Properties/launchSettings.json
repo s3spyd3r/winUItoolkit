@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "WinUIToolkit.Examples": {
+      "commandName": "Project"
+    }
+  }
+}

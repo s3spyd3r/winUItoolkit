@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.ImageCachePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="ImageCacheHelper" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Downloads an image and caches it in the app's temporary folder. Press twice to see the cache hit." />
+
+            <TextBox x:Name="UrlBox" Header="Image URL"
+                     Text="https://brand.github.com/_next/static/media/logo-03.cc5e5332.png" />
+            <Button Content="Load (cached)" Click="Load_Click" />
+            <TextBlock x:Name="Status" />
+            <Image x:Name="Output" MaxWidth="320" MaxHeight="240" />
+            <Button Content="Clear cache" Click="Clear_Click" Margin="0,8,0,0" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

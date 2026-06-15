@@ -6,7 +6,7 @@ This repository targets desktop WinUI 3 apps (Windows App SDK) but includes comp
 
 Contents
 - `Animations/` — custom storyboard-based animations (`CustomAnimations.cs`).
-- `Helpers/` — many small helpers (navigation, theme, logging, async utilities, image manipulation, color conversion, validation, clipboard, UI tree, toast, message dialogs, and more).
+- `Helpers/` — many small helpers (navigation, logging, async utilities, image manipulation, color conversion, validation, clipboard, UI tree, toast, message dialogs, and more).
 - `Http/` — networking helpers, an image cache, and a services wrapper (`ServicesHelper`, `ImageCacheHelper`, `NetHelper`).
 - `IO/` — JSON serialization and storage helpers (`JsonStorage`, `StorageHelper`).
 - `Tasks/` — platform/task helpers (launcher, location, picture picker, calendar helpers).
@@ -56,11 +56,11 @@ Animations
 
 IO and Storage
 - `IO/JsonStorage.cs`: small wrapper around `System.Text.Json` with shared `Options`/`FileOptions`. Async `Serialize`/`Deserialize` helpers.
-- `IO/StorageHelper.cs`: helpers to read package/asset files (with an unpackaged fallback that resolves the URI relative to the executable), plus `LocalSettings` get/set helpers.
+- `IO/StorageHelper.cs`: helpers to read package/asset files (with an unpackaged fallback that resolves the URI relative to the executable), plus `LocalSettings` get/set helpers that use `ApplicationData.LocalSettings` when packaged and a JSON file at `%LocalAppData%\winUItoolkit\settings.json` when unpackaged.
 
 HTTP and Networking
 - `Http/ServicesHelper.cs`: JSON request/response helpers, file upload/download, retry/backoff, and typed deserialization.
-- `Http/ImageCacheHelper.cs`: downloads images, caches them in the app's temporary folder using `StorageFile` APIs, and enforces a size-based eviction policy.
+- `Http/ImageCacheHelper.cs`: downloads images, caches them in `ApplicationData.TemporaryFolder` for packaged apps and `%LocalAppData%\winUItoolkit\ImageCache` for unpackaged, and enforces a size-based eviction policy.
 - `Http/NetHelper.cs`: quick connectivity check using `NetworkInformation`.
 
 Helpers (Helpers/)
@@ -78,7 +78,6 @@ Methods are intentionally small and synchronous/async friendly.
 - `RetryPolicyHelper` — generic retry wrapper, plus a public `ComputeBackoff` used by `ServicesHelper`.
 - `RuntimeHelper` — detects if the app is running with a package identity (MSIX).
 - `SingletonBase<T>` — generic thread-safe singleton base.
-- `ThemeHelper` — change application theme and apply accent colors at runtime.
 - `ToastHelper` — popup-style transient toast attached to a `XamlRoot`.
 - `UriHelper` — HTTP URI validation and query parsing.
 - `Validators` — common input validators (email, phone, URL, password, numeric, postal, alpha, alphanumeric). `IsValidUrl` delegates to `UriHelper`.

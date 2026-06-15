@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.DialogsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="Dialogs &amp; Toast" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="MessageBoxHelper (ContentDialog wrappers) and ToastHelper (Popup-based transient toast)." />
+
+            <Button Content="Show simple dialog" Click="SimpleDialog_Click" />
+            <Button Content="Show titled dialog" Click="TitledDialog_Click" />
+            <Button Content="Show multi-button dialog" Click="MultiButton_Click" />
+            <TextBlock x:Name="DialogResult" TextWrapping="Wrap" />
+
+            <Button Content="Show yes/no confirm" Click="Confirm_Click" />
+            <TextBlock x:Name="ConfirmResult" />
+
+            <TextBox x:Name="ToastText" Header="Toast message" Text="Hello from winUItoolkit!" />
+            <Button Content="Show toast" Click="Toast_Click" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

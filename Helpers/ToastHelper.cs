@@ -50,9 +50,9 @@ namespace winUItoolkit.Helpers
             var popup = new Popup
             {
                 Child = rootGrid,
-                IsOpen = true,
                 XamlRoot = xamlRoot
             };
+            popup.IsOpen = true;
 
             var fadeIn = new DoubleAnimation { To = 1, Duration = new Duration(TimeSpan.FromMilliseconds(300)) };
             var slideUp = new DoubleAnimation { To = 0, Duration = new Duration(TimeSpan.FromMilliseconds(300)) };

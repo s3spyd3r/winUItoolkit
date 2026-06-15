@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.ColorConverterPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="640" HorizontalAlignment="Left">
+            <TextBlock Text="ColorConverter" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Hex ⇄ Color, HSL ⇄ Color, and lighten/darken/adjust-saturation." />
+
+            <TextBox x:Name="HexInput" Header="Hex color" PlaceholderText="#1E90FF" Text="#1E90FF" />
+            <Button Content="Convert" Click="Convert_Click" />
+
+            <Border x:Name="Swatch" Width="240" Height="64" CornerRadius="6" Margin="0,8,0,0" />
+
+            <TextBlock x:Name="ConvertedText" TextWrapping="Wrap" />
+
+            <TextBlock Text="Lighten / Darken base" Margin="0,12,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Lighten 0.2" Click="Lighten_Click" Tag="0.2" />
+                <Button Content="Lighten 0.4" Click="Lighten_Click" Tag="0.4" />
+                <Button Content="Darken 0.2" Click="Darken_Click" Tag="0.2" />
+                <Button Content="Darken 0.4" Click="Darken_Click" Tag="0.4" />
+                <Button Content="Desaturate" Click="Desat_Click" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

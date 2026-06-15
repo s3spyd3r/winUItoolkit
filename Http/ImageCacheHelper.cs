@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Storage;
+using winUItoolkit.Helpers;
 
 namespace winUItoolkit.Http
 {
@@ -31,43 +32,39 @@ namespace winUItoolkit.Http
 
             try
             {
-                var cacheFolder = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(
-                    _cacheFolderName, CreationCollisionOption.OpenIfExists).AsTask().ConfigureAwait(false);
+                StorageFolder cacheFolder = await GetCacheFolderAsync();
 
                 string fileName = GetSafeFileName(url);
+                string filePath = Path.Combine(cacheFolder.Path, fileName);
 
-                var existing = await cacheFolder.TryGetItemAsync(fileName).AsTask().ConfigureAwait(false);
                 var expiration = cacheDuration ?? TimeSpan.FromDays(7);
 
                 bool shouldDownload = true;
-                if (existing is StorageFile existingFile)
+                if (File.Exists(filePath))
                 {
-                    if (DateTimeOffset.UtcNow - existingFile.DateCreated < expiration)
+                    var created = File.GetCreationTimeUtc(filePath);
+                    if (DateTimeOffset.UtcNow - created < expiration)
                     {
                         shouldDownload = false;
                     }
                     else
                     {
-                        try { await existingFile.DeleteAsync(StorageDeleteOption.Default).AsTask().ConfigureAwait(false); } catch { }
+                        try { File.Delete(filePath); } catch { }
                     }
                 }
 
                 if (shouldDownload)
                 {
-                    var bytes = await _httpClient.GetByteArrayAsync(url, cancellationToken).ConfigureAwait(false);
+                    var bytes = await _httpClient.GetByteArrayAsync(url, cancellationToken);
 
                     long maxBytes = maxCacheSizeBytes ?? DefaultMaxCacheSizeBytes;
-                    await EnsureCacheSizeLimitAsync(cacheFolder, maxBytes, bytes.Length).ConfigureAwait(false);
+                    await EnsureCacheSizeLimitAsync(cacheFolder, maxBytes, bytes.Length);
 
-                    var file = await cacheFolder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(false);
-                    await using (var stream = await file.OpenStreamForWriteAsync().ConfigureAwait(false))
-                    {
-                        await stream.WriteAsync(bytes.AsMemory(0, bytes.Length), cancellationToken).ConfigureAwait(false);
-                    }
+                    await File.WriteAllBytesAsync(filePath, bytes, cancellationToken);
                 }
 
-                var fileToLoad = await cacheFolder.GetFileAsync(fileName).AsTask().ConfigureAwait(false);
-                return await LoadBitmapImageAsync(fileToLoad).ConfigureAwait(false);
+                var file = await cacheFolder.GetFileAsync(fileName).AsTask();
+                return await LoadBitmapImageAsync(file);
             }
             catch (Exception ex)
             {
@@ -83,14 +80,31 @@ namespace winUItoolkit.Http
         {
             try
             {
-                var cacheFolder = await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(
-                    _cacheFolderName, CreationCollisionOption.OpenIfExists);
-                await cacheFolder.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                var cacheFolder = await GetCacheFolderAsync();
+                foreach (var file in await cacheFolder.GetFilesAsync())
+                {
+                    try { await file.DeleteAsync(StorageDeleteOption.PermanentDelete); } catch { }
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to clear image cache: {ex.Message}");
             }
+        }
+
+        private static async Task<StorageFolder> GetCacheFolderAsync()
+        {
+            if (RuntimeHelper.IsPackaged())
+            {
+                return await ApplicationData.Current.TemporaryFolder.CreateFolderAsync(
+                    _cacheFolderName, CreationCollisionOption.OpenIfExists).AsTask();
+            }
+
+            string path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "winUItoolkit", _cacheFolderName);
+            Directory.CreateDirectory(path);
+            return await StorageFolder.GetFolderFromPathAsync(path).AsTask();
         }
 
         private static string GetSafeFileName(string url)
@@ -122,11 +136,11 @@ namespace winUItoolkit.Http
         {
             try
             {
-                var files = await folder.GetFilesAsync().AsTask().ConfigureAwait(false);
+                var files = await folder.GetFilesAsync().AsTask();
                 long total = 0;
                 foreach (var f in files)
                 {
-                    var p = await f.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+                    var p = await f.GetBasicPropertiesAsync().AsTask();
                     total += (long)p.Size;
                 }
 
@@ -141,9 +155,9 @@ namespace winUItoolkit.Http
                 {
                     try
                     {
-                        var p = await f.GetBasicPropertiesAsync().AsTask().ConfigureAwait(false);
+                        var p = await f.GetBasicPropertiesAsync().AsTask();
                         long size = (long)p.Size;
-                        await f.DeleteAsync().AsTask().ConfigureAwait(false);
+                        await f.DeleteAsync().AsTask();
                         total -= size;
 
                         if (total + incomingFileSize <= maxBytes)

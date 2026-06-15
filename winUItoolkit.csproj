@@ -11,4 +11,13 @@
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6901" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251003001" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The example project lives under this repo's directory tree but is a separate project. -->
+    <None Remove="examples\**" />
+    <Page Remove="examples\**" />
+    <ApplicationDefinition Remove="examples\**" />
+    <Compile Remove="examples\**" />
+    <EmbeddedResource Remove="examples\**" />
+    <XamlApplication Remove="examples\**" />
+  </ItemGroup>
 </Project>

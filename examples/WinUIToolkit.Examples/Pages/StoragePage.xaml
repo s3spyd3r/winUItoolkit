@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.StoragePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="12" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="Storage &amp; LocalSettings" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="StorageHelper reads/writes JSON in a StorageFolder and stores simple values in LocalSettings." />
+
+            <TextBox x:Name="SettingsKey" Header="Key" Text="userName" />
+            <TextBox x:Name="SettingsValue" Header="Value" Text="Anonymous" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Save to LocalSettings" Click="SaveLocal_Click" />
+                <Button Content="Read from LocalSettings" Click="ReadLocal_Click" />
+            </StackPanel>
+            <TextBlock x:Name="LocalResult" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

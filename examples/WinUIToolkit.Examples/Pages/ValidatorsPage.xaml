@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="WinUIToolkit.Examples.Pages.ValidatorsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel Spacing="8" MaxWidth="520" HorizontalAlignment="Left">
+            <TextBlock Text="Validators" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" Text="Live validation feedback. Each box is checked by the corresponding Validators method as you type." />
+
+            <TextBox x:Name="EmailBox" Header="Email" PlaceholderText="name@example.com" TextChanged="Any_TextChanged" />
+            <TextBlock x:Name="EmailResult" />
+
+            <TextBox x:Name="PhoneBox" Header="Phone" PlaceholderText="+15555550100" TextChanged="Any_TextChanged" />
+            <TextBlock x:Name="PhoneResult" />
+
+            <TextBox x:Name="UrlBox" Header="URL" PlaceholderText="https://example.com" TextChanged="Any_TextChanged" />
+            <TextBlock x:Name="UrlResult" />
+
+            <TextBox x:Name="PasswordBox" Header="Password" PlaceholderText="StrongP@ss1" TextChanged="Any_TextChanged" />
+            <TextBlock x:Name="PasswordResult" TextWrapping="Wrap" />
+
+            <TextBox x:Name="PostalBox" Header="Postal code" PlaceholderText="12345" TextChanged="Any_TextChanged" />
+            <TextBlock x:Name="PostalResult" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
