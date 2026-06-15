@@ -6,11 +6,30 @@
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
+
+    <!-- The example project lives under this repo's directory tree but is a separate project.
+         Disable default Content glob so its bin/obj outputs never end up in the NuGet package. -->
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+
+    <!-- NuGet packaging metadata -->
+    <IsPackable>true</IsPackable>
+    <PackageId>winUItoolkit</PackageId>
+    <Version>0.0.2</Version>
+    <Authors>winUItoolkit contributors</Authors>
+    <Description>Compact collection of helpers, utilities, converters and UI primitives for WinUI 3 (.NET 8) desktop apps. Includes packaged/unpackaged fallbacks.</Description>
+    <PackageTags>winui3;winappsdk;winui;helpers;windows</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/your-org/winUItoolkit</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6901" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251003001" />
   </ItemGroup>
+
   <ItemGroup>
     <!-- The example project lives under this repo's directory tree but is a separate project. -->
     <None Remove="examples\**" />
@@ -19,5 +38,10 @@
     <Compile Remove="examples\**" />
     <EmbeddedResource Remove="examples\**" />
     <XamlApplication Remove="examples\**" />
+    <Content Remove="examples\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
